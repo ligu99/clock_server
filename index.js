@@ -132,10 +132,19 @@ app.get("/user/testclock", function(req, res) {
   });
 });
 
-// 测试微信私信
-app.get("/wechat/add", function(req, res) {
-  //获取及处理增加的数据
-  console.log(req.query);
+// 修改打卡狀態
+app.post("/user/changestatus", function(req, res) {
+  let {email,clockStatus} = req.body;
+  let sql=`update user_list set clockStatus='${clockStatus}' where email='${email}'`;
+  connect.query(sql, function(err, rows) {
+    if (err) {
+      res.send("err：" + err);
+    } else if(rows.changedRows!=0 || rows.affectedRows!=0) {
+      res.send({ code: 200, msg: "ok" });
+    }else{
+      res.send({ code: 201, msg: "修改失敗！" });
+    }
+  });
 });
 
 app.listen(port, () => {
