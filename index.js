@@ -147,6 +147,33 @@ app.post("/user/changestatus", function(req, res) {
   });
 });
 
+// 修改媒体ID
+app.post("/media/change", function(req, res) {
+  let {mediaId} = req.body;
+  let sql=`update media_list set mediaId='${mediaId}' where id='1'`;
+  connect.query(sql, function(err, rows) {
+    if (err) {
+      res.send("err：" + err);
+    } else if(rows.changedRows!=0 || rows.affectedRows!=0) {
+      res.send({ code: 200, msg: "ok" });
+    }else{
+      res.send({ code: 201, msg: "修改失敗！" });
+    }
+  });
+});
+// 查
+app.get("/media/list", function(req, res) {
+  let sql = "SELECT * FROM user_list where id=1";
+  connect.query(sql, function(err, result) {
+    if (err) {
+        res.send("err：" + err);
+      return;
+    }
+    res.send({ code: 200, msg: "ok", items: result });
+  });
+});
+
+
 app.listen(port, () => {
   console.log("服務已啓動:"+new Date(Date.now()));
   console.log(`Service is running! http://localhost:${port}`);
