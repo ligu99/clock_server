@@ -188,6 +188,6 @@ app.get("/movie", function(req, res) {
 });
 
 app.listen(port, () => {
-  console.log("服務已啓動:"+new Date(Date.now()));
+  console.log("更新Token+电影搜索+公众号修改媒体ID等服務已啓動:"+new Date(Date.now()));
   console.log(`Service is running! http://localhost:${port}`);
 });
