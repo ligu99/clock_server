@@ -17,7 +17,7 @@ var connect = mysql.createConnection({
   useConnectionPooling: true,// 解決Error: Cannot enqueue Query after fatal error
 });
 // 連接數據庫
-connect.connect();
+// connect.connect();
 
 // 创建 application/x-www-form-urlencoded 编码解析(post方法)
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -42,7 +42,7 @@ app.get("/user/list", function(req, res) {
   // if (id) {
   //   sql += "where 1=1 and id ='" + id + "'";
   // }
-
+  connect.connect();
   connect.query(sql, function(err, result) {
     if (err) {
         res.send("err：" + err);
@@ -55,6 +55,7 @@ app.get("/user/list", function(req, res) {
     }
     res.send({ code: 200, msg: "ok", items: result });
   });
+  connect.end();
 });
 
 // 增
@@ -62,6 +63,7 @@ app.post("/user/add", function(req, res) {
   //获取及处理增加的数据
   let {name,token,email,pwd} = req.body;
   let sql =`insert into user_list(name,token,email,password) values('${name}','${token}','${email}','${pwd}')`;
+  connect.connect();
   connect.query(sql, function(err, rows) {
     if (err) {
       res.send("err：" + err);
@@ -69,6 +71,7 @@ app.post("/user/add", function(req, res) {
       res.send({ code: 200, msg: "ok" });
     }
   });
+  connect.end();
 });
 
 // 删
@@ -76,6 +79,7 @@ app.delete("/user/del", function(req, res) {
   // 数据库操作
   let {id} = req.body;
   let sql="delete from user_list where id=" + id;
+  connect.connect();
   connect.query(sql, function(err, rows) {
     if (err) {
       res.send("err：" + err);
@@ -83,12 +87,14 @@ app.delete("/user/del", function(req, res) {
       res.send({ code: 200, msg: "ok" });
     }
   });
+  connect.end();
 });
 // 改
 app.post("/user/update", function(req, res) {
   // 数据库操作
   let {id,token,email,pwd} = req.body;
   let sql=`update user_list set token='${token}',email='${email}' where id=${id} and password='${pwd}'`;
+  connect.connect();
   connect.query(sql, function(err, rows) {
     if (err) {
       res.send("err：" + err);
@@ -98,12 +104,14 @@ app.post("/user/update", function(req, res) {
       res.send({ code: 201, msg: "修改失敗！" });
     }
   });
+  connect.end();
 });
 // 改密碼
 app.post("/user/changepwd", function(req, res) {
   // 数据库操作
   let {email,oldpwd,newpwd} = req.body;
   let sql=`update user_list set password='${newpwd}' where email='${email}' and password='${oldpwd}'`;
+  connect.connect();
   connect.query(sql, function(err, rows) {
     if (err) {
       res.send("err：" + err);
@@ -113,13 +121,14 @@ app.post("/user/changepwd", function(req, res) {
       res.send({ code: 201, msg: "修改失敗！" });
     }
   });
+  connect.end();
 });
 // 用戶測試打卡
 app.get("/user/testclock", function(req, res) {
   // 数据库操作
   let { id,pwd } = req.query;
   let sql = `SELECT * FROM user_list where id='${id}' and password='${pwd}'`;
-
+  connect.connect();
   connect.query(sql, function(err, result) {
     if (err) {
       res.send("err：" + err);
@@ -130,12 +139,14 @@ app.get("/user/testclock", function(req, res) {
       res.send("err");
     }
   });
+  connect.end();
 });
 
 // 修改打卡狀態
 app.post("/user/changestatus", function(req, res) {
   let {email,clockStatus} = req.body;
   let sql=`update user_list set clockStatus='${clockStatus}' where email='${email}'`;
+  connect.connect();
   connect.query(sql, function(err, rows) {
     if (err) {
       res.send("err：" + err);
@@ -145,12 +156,14 @@ app.post("/user/changestatus", function(req, res) {
       res.send({ code: 201, msg: "修改失敗！" });
     }
   });
+  connect.end();
 });
 
 // 修改媒体ID
 app.post("/media/change", function(req, res) {
   let {mediaId} = req.body;
   let sql=`update media_list set mediaId='${mediaId}' where id='1'`;
+  connect.connect();
   connect.query(sql, function(err, rows) {
     if (err) {
       res.send("err：" + err);
@@ -160,10 +173,12 @@ app.post("/media/change", function(req, res) {
       res.send({ code: 201, msg: "修改失敗！" });
     }
   });
+  connect.end();
 });
 // 查
 app.get("/media/list", function(req, res) {
   let sql = "SELECT * FROM user_list where id=1";
+  connect.connect();
   connect.query(sql, function(err, result) {
     if (err) {
         res.send("err：" + err);
@@ -171,6 +186,7 @@ app.get("/media/list", function(req, res) {
     }
     res.send({ code: 200, msg: "ok", items: result });
   });
+  connect.end();
 });
 
 // 查电影
@@ -178,6 +194,7 @@ app.get("/movie", function(req, res) {
   let { cnname } = req.query;
   let sql = `SELECT * FROM yyets where cnname = '${cnname}' limit 0,50`;
   // let sql = `SELECT * FROM yyets where cnname LIKE '%${cnname}%' limit 0,50`;
+  connect.connect();
   connect.query(sql, function(err, result) {
     if (err) {
         res.send("err：" + err);
@@ -185,6 +202,7 @@ app.get("/movie", function(req, res) {
     }
     res.send({ code: 200, msg: "ok", data: result });
   });
+  connect.end();
 });
 
 app.listen(port, () => {
