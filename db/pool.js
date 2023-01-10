@@ -1,27 +1,28 @@
 var mysql = require("mysql");
+const { dbPwd } = require("./pwd");
 var pool = mysql.createPool({
-    host: "localhost",
+    host: "81.71.123.165",
     user: "root",
     port: "3306",
-    password: "",
+    password: dbPwd,
     database: "ey_clock",
     useConnectionPooling: true,// 解決Error: Cannot enqueue Query after fatal error
 });
 
-var query=function(sql,callback){
-    pool.getConnection(function(err, connection) {
-        if(err){
+var query = function (sql, callback) {
+    pool.getConnection(function (err, connection) {
+        if (err) {
             console.log("建立连接失败");
         } else {
             // console.log("建立连接成功");
             // console.log(pool._allConnections.length); //  1
-            connection.query(sql, function(err, rows) {
-                if(err) {
+            connection.query(sql, function (err, rows) {
+                if (err) {
                     console.log("查询失败");
-                    callback(err,null)
+                    callback(err, null)
                 } else {
                     // console.log(rows);
-                    callback(null,rows)
+                    callback(null, rows)
                 }
                 // 当不再使用时，归还到连接池中
                 connection.release();
@@ -33,4 +34,4 @@ var query=function(sql,callback){
     })
 };
 
-module.exports=query;
+module.exports = query;
