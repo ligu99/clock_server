@@ -172,8 +172,8 @@ app.get("/media/list", function(req, res) {
 // 查电影
 app.get("/movie", function(req, res) {
   let { cnname } = req.query;
-  let sql = `SELECT * FROM yyets where cnname = '${cnname}' limit 0,50`;
-  // let sql = `SELECT * FROM yyets where cnname LIKE '%${cnname}%' limit 0,50`;
+  // let sql = `SELECT * FROM yyets where cnname = '${cnname}' limit 0,50`;
+  let sql = `SELECT * FROM yyets where cnname LIKE '%${cnname}%' limit 0,50`;
   query(sql, function(err, result) {
     if (err) {
         res.send("err：" + err);
