@@ -4,7 +4,7 @@ const Busboy = require('busboy');
 const path = require('path');
 const fs = require('fs');
 const app = express();
-const port = 3000;
+const port = 8100;
 const xlsx = require("node-xlsx");
 const { randomFillSync } = require('crypto');
 const os = require('os');
@@ -37,6 +37,12 @@ app.all('*', function (req, res, next) {
     res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
     res.header("X-Powered-By", ' 3.2.1');
     res.header("Content-Type", "application/json;charset=utf-8");
+    // 解决DELETE的跨域问题
+    res.header('Allow', 'GET, POST, PATCH, OPTIONS, PUT, DELETE')
+    //只允许 POST、GET、DELETE、HEAD 请求方法
+    res.setHeader('Access-Control-Allow-Methods','POST','GET','DELETE','HEAD')
+    //允许所有的HTTP请求方法
+    res.setHeader('Access-Control-Allow-Methods','*')
     next();
 });
 
@@ -222,6 +228,24 @@ app.get('/file/download', (req, res) => {
     'Content-Disposition': `attachment; filename=${filePath}`
   });
   file.pipe(res)
+});
+// 文件删除
+app.delete('/file/delete', (req, res) => {
+  const {filePath} =  req.body;
+  let url = path.join(__dirname, 'toolupload',filePath);
+  let sql=`delete from file_list where filename='${filePath}'`;
+  if(fs.existsSync(url)){
+    fs.unlinkSync(url);
+    query(sql, function(err, rows) {
+      if (err) {
+        res.send("err：" + err);
+      } else {
+        res.send({ code: 200, msg: "ok" });
+      }
+    });
+  }else{
+    res.send("文件不存在");
+  }
 });
 
 // 获取一个哈希值
