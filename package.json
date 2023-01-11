@@ -10,8 +10,13 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.27.2",
+    "busboy": "^1.6.0",
+    "crypto": "^1.0.1",
     "express": "^4.18.1",
+    "iconv-lite": "^0.4.24",
     "ip": "^1.1.8",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "node-xlsx": "^0.21.0",
+    "os": "^0.1.2"
   }
 }

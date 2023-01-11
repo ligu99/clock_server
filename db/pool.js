@@ -7,6 +7,7 @@ var pool = mysql.createPool({
     password: dbPwd,
     database: "ey_clock",
     useConnectionPooling: true,// 解決Error: Cannot enqueue Query after fatal error
+    multipleStatements: true // 支持执行多条 sql 语句
 });
 
 var query = function (sql, callback) {

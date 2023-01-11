@@ -1,9 +1,17 @@
 const express = require("express");
-const mysql = require("mysql");
+const bodyParser = require('body-parser');
+const Busboy = require('busboy');
+const path = require('path');
+const fs = require('fs');
 const app = express();
 const port = 3000;
-const bodyParser = require('body-parser');
-const query =require("./db/pool.js")
+const xlsx = require("node-xlsx");
+const { randomFillSync } = require('crypto');
+const os = require('os');
+const iconv = require('iconv-lite');
+const query =require("./db/pool.js");
+// 忽略警告
+iconv.skipDecodeWarning = true;
 
 // const host = ip=== "81.71.123.165" ? "localhost" : "81.71.123.165";
 // var connect = mysql.createConnection({
@@ -180,6 +188,113 @@ app.get("/movie", function(req, res) {
       return;
     }
     res.send({ code: 200, msg: "ok", data: result });
+  });
+});
+
+// 处理上传文件服务
+app.post('/upload', (req, res) => {
+  const { type } =  req.query;
+  const busboy = Busboy({ headers: req.headers });
+  var saveTo = "",fileName="";
+  busboy.on('file', (fieldname, file, info) => {
+    const { filename, encoding, mimeType } = info;
+    fileName = iconv.decode(filename, 'utf8');
+    saveTo = path.join(__dirname, 'toolupload', fileName);
+    file.pipe(fs.createWriteStream(saveTo));
+  });
+
+  busboy.on('finish', function () {
+    res.send({ code: 200, msg: "ok"});
+    setTimeout(() => {
+      readFileToDB(fileName,type);
+    }, 1000);
+  });
+
+  return req.pipe(busboy);
+});
+
+// 文件下載服务
+app.get('/file/download', (req, res) => {
+  const {filePath} =  req.query;
+  const file = fs.createReadStream(path.join(__dirname, 'toolupload',filePath));
+  res.writeHead(200, {
+    'Content-Type': 'application/force-download',
+    'Content-Disposition': `attachment; filename=${filePath}`
+  });
+  file.pipe(res)
+});
+
+// 获取一个哈希值
+const random = (() => {
+  const buf = Buffer.alloc(16);
+  return () => randomFillSync(buf).toString('hex');
+})();
+
+// 读取表格数据写入数据库
+function readFileToDB(file,type){
+  const sheets = xlsx.parse("./toolupload/"+file);
+  // 查看页面数
+  // console.log(sheets.length);
+  // 打印页面信息..
+  const sheet = sheets[0];
+  // 打印页面数据
+  // console.log(sheet.data);
+  // 表头
+  let Title = sheet.data[0];
+  let dataList=[];
+  sheet.data.forEach((row,index) => {
+      // 输出每行内容
+      // console.log(row);
+      //整一个新对象
+      var NewVot = {}
+      // 数组格式, 根据不同的索引取数据
+      if (index == 0){//标题栏读过了，所以此处不读
+        return
+      } else {
+        for(var i = 0 ; i < Title.length ; i++ ){
+            NewVot[Title[i]] = row[i]
+        }
+        dataList.push(NewVot)
+      }
+  })
+  let checkSql = `SELECT * From file_list where filename = '${file}'`;
+  let insertSql =`insert into file_list (filename,filedata,filetype) values ('${file}','${JSON.stringify(dataList)}','${type}')`;
+  let updateSql=`update file_list set filedata='${JSON.stringify(dataList)}' where filename='${file}'`;
+  query(checkSql, function(err, result) {
+    if (err) {
+      console.log("err：" + err);
+      return;
+    }else{
+      if(result.length>0){
+        query(updateSql, function(err, result) {
+          if (err) {
+            console.log("err：" + err);
+            return;
+          }
+        });
+      }else{
+        query(insertSql, function(err, result) {
+          if (err) {
+            console.log("err：" + err);
+            return;
+          }
+        });
+      }
+    }
+  });
+}
+
+// 文件列表
+app.get("/file/list", function(req, res) {
+  // 数据库操作
+  let { type } = req.query;
+  let sql = `SELECT * FROM file_list where filetype = '${type}'`;
+  query(sql, function(err, result) {
+    if (err) {
+        res.send("err：" + err);
+      return;
+    }
+    res.send({ code: 200, msg: "ok", items: result });
   });
 });
 
