@@ -267,24 +267,26 @@ function readFileToDB(file, type) {
   // 打印页面数据
   // console.log(sheet.data);
   // 表头
-  let Title = sheet.data[0];
+  let Title = sheet.data[2];
   let dataList = [];
   sheet.data.forEach((row, index) => {
+    if(row.length<=0) return;
     // 输出每行内容
     // console.log(row);
     //整一个新对象
     var NewVot = {}
     // 数组格式, 根据不同的索引取数据
-    if (index == 0) {//标题栏读过了，所以此处不读
+    if (index <= 2) {//标题栏读过了，所以此处不读
       return
     } else {
-      for (var i = 0; i < Title.length; i++) {
-        NewVot[Title[i]] = row[i]
+      for (let i = 0; i < Title.length; i++) {
+        Title[i] = Title[i].replace("\r\n", "");
+        NewVot[Title[i]] = row[i] || null;
       }
       dataList.push(NewVot)
     }
   })
-  let checkSql = `SELECT * From file_list where filename = '${file}'`;
+  let checkSql = `SELECT * From file_list where filename = '${file}' and filetype='${type}'`;
   let insertSql = `insert into file_list (filename,filedata,filetype) values ('${file}','${JSON.stringify(dataList)}','${type}')`;
   let updateSql = `update file_list set filedata='${JSON.stringify(dataList)}' where filename='${file}' and filetype='${type}'`;
   query(checkSql, function (err, result) {
