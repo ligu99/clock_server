@@ -32,7 +32,7 @@ app.use(bodyParser.json())
 app.use(express.static("./web/dist"))
 //设置跨域访问
 app.all('*', function (req, res, next) {
-  const allOrigin = ["http://81.71.123.165:3000", "http://81.71.123.165:8002", "http://81.71.123.165:8010", "http://localhost:8080","http://localhost:8084"];
+  const allOrigin = ["http://81.71.123.165:3000", "http://81.71.123.165:8002", "http://81.71.123.165:8010", "http://localhost:8080", "http://localhost:8084"];
   let allowOrigin = "http://81.71.123.165:3000";// "*" 表示所有
   if (allOrigin.includes(req.headers.origin)) {
     allowOrigin = req.headers.origin
@@ -199,7 +199,7 @@ app.get("/movie", function (req, res) {
 // 处理上传文件服务
 app.post('/upload', (req, res) => {
   const { type } = req.query;
-  let dir = type=== "T" ? "toolupload_T" : "toolupload_D";
+  let dir = type === "T" ? "toolupload_T" : "toolupload_D";
   const busboy = Busboy({ headers: req.headers });
   var saveTo = "", fileName = "";
   busboy.on('file', (fieldname, file, info) => {
@@ -221,7 +221,7 @@ app.post('/upload', (req, res) => {
 
 // 文件下載服务
 app.get('/file/download', (req, res) => {
-  const { filePath,type } = req.query;
+  const { filePath, type } = req.query;
   let dir = type === "T" ? "toolupload_T" : "toolupload_D";
   const file = fs.createReadStream(path.join(__dirname, dir, filePath));
   res.writeHead(200, {
@@ -232,8 +232,8 @@ app.get('/file/download', (req, res) => {
 });
 // 文件删除
 app.delete('/file/delete', (req, res) => {
-  const { filePath,type } = req.body;
-  let dir = type=== "T" ? "toolupload_T" : "toolupload_D";
+  const { filePath, type } = req.body;
+  let dir = type === "T" ? "toolupload_T" : "toolupload_D";
   let url = path.join(__dirname, dir, filePath);
   let sql = `delete from file_list where filename='${filePath}'`;
   if (fs.existsSync(url)) {
@@ -258,7 +258,7 @@ const random = (() => {
 
 // 读取表格数据写入数据库
 function readFileToDB(file, type) {
-  let dir = type=== "T" ? "toolupload_T" : "toolupload_D";
+  let dir = type === "T" ? "toolupload_T" : "toolupload_D";
   const sheets = xlsx.parse(`./${dir}/${file}`);
   // 查看页面数
   // console.log(sheets.length);
@@ -270,7 +270,7 @@ function readFileToDB(file, type) {
   let Title = sheet.data[2];
   let dataList = [];
   sheet.data.forEach((row, index) => {
-    if(row.length<=0) return;
+    if (row.length <= 0) return;
     // 输出每行内容
     // console.log(row);
     //整一个新对象
@@ -280,7 +280,7 @@ function readFileToDB(file, type) {
       return
     } else {
       for (let i = 0; i < Title.length; i++) {
-        Title[i] = Title[i].replace("\r\n", "");
+        Title[i] = Title[i].replace(/(\r\n)|(\n)/g, "");
         NewVot[Title[i]] = row[i] || null;
       }
       dataList.push(NewVot)
@@ -336,9 +336,9 @@ app.post("/file/admin", function (req, res) {
       res.send("err：" + err);
       return;
     }
-    if(result.length>0){
-      res.send({ code: 200, msg: "ok"});
-    }else{
+    if (result.length > 0) {
+      res.send({ code: 200, msg: "ok" });
+    } else {
       res.send({ code: 201, msg: "密码错误" });
     }
   });
