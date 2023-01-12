@@ -32,7 +32,7 @@ app.use(bodyParser.json())
 app.use(express.static("./web/dist"))
 //设置跨域访问
 app.all('*', function (req, res, next) {
-  const allOrigin = ["http://81.71.123.165:3000", "http://81.71.123.165:8002", "http://81.71.123.165:8010", "http://localhost:8080"];
+  const allOrigin = ["http://81.71.123.165:3000", "http://81.71.123.165:8002", "http://81.71.123.165:8010", "http://localhost:8080","http://localhost:8084"];
   let allowOrigin = "http://81.71.123.165:3000";// "*" 表示所有
   if (allOrigin.includes(req.headers.origin)) {
     allowOrigin = req.headers.origin
@@ -199,12 +199,13 @@ app.get("/movie", function (req, res) {
 // 处理上传文件服务
 app.post('/upload', (req, res) => {
   const { type } = req.query;
+  let dir = type=== "T" ? "toolupload_T" : "toolupload_D";
   const busboy = Busboy({ headers: req.headers });
   var saveTo = "", fileName = "";
   busboy.on('file', (fieldname, file, info) => {
     const { filename, encoding, mimeType } = info;
     fileName = iconv.decode(filename, 'utf8');
-    saveTo = path.join(__dirname, 'toolupload', fileName);
+    saveTo = path.join(__dirname, dir, fileName);
     file.pipe(fs.createWriteStream(saveTo));
   });
 
@@ -220,18 +221,20 @@ app.post('/upload', (req, res) => {
 
 // 文件下載服务
 app.get('/file/download', (req, res) => {
-  const { filePath } = req.query;
-  const file = fs.createReadStream(path.join(__dirname, 'toolupload', filePath));
+  const { filePath,type } = req.query;
+  let dir = type === "T" ? "toolupload_T" : "toolupload_D";
+  const file = fs.createReadStream(path.join(__dirname, dir, filePath));
   res.writeHead(200, {
     'Content-Type': 'application/force-download',
-    'Content-Disposition': `attachment; filename=${filePath}`
+    'Content-Disposition': `attachment; filename=${encodeURIComponent(filePath)}`
   });
   file.pipe(res)
 });
 // 文件删除
 app.delete('/file/delete', (req, res) => {
-  const { filePath } = req.body;
-  let url = path.join(__dirname, 'toolupload', filePath);
+  const { filePath,type } = req.body;
+  let dir = type=== "T" ? "toolupload_T" : "toolupload_D";
+  let url = path.join(__dirname, dir, filePath);
   let sql = `delete from file_list where filename='${filePath}'`;
   if (fs.existsSync(url)) {
     fs.unlinkSync(url);
@@ -255,7 +258,8 @@ const random = (() => {
 
 // 读取表格数据写入数据库
 function readFileToDB(file, type) {
-  const sheets = xlsx.parse("./toolupload/" + file);
+  let dir = type=== "T" ? "toolupload_T" : "toolupload_D";
+  const sheets = xlsx.parse(`./${dir}/${file}`);
   // 查看页面数
   // console.log(sheets.length);
   // 打印页面信息..
@@ -282,7 +286,7 @@ function readFileToDB(file, type) {
   })
   let checkSql = `SELECT * From file_list where filename = '${file}'`;
   let insertSql = `insert into file_list (filename,filedata,filetype) values ('${file}','${JSON.stringify(dataList)}','${type}')`;
-  let updateSql = `update file_list set filedata='${JSON.stringify(dataList)}' where filename='${file}'`;
+  let updateSql = `update file_list set filedata='${JSON.stringify(dataList)}' where filename='${file}' and filetype='${type}'`;
   query(checkSql, function (err, result) {
     if (err) {
       console.log("err：" + err);
@@ -318,6 +322,23 @@ app.get("/file/list", function (req, res) {
       return;
     }
     res.send({ code: 200, msg: "ok", items: result });
+  });
+});
+// 获取用户密码
+app.post("/file/admin", function (req, res) {
+  // 数据库操作
+  let { pwd } = req.body;
+  let sql = `SELECT * FROM file_list where filename = 'adminpwd' and filedata = '${pwd}'`;
+  query(sql, function (err, result) {
+    if (err) {
+      res.send("err：" + err);
+      return;
+    }
+    if(result.length>0){
+      res.send({ code: 200, msg: "ok"});
+    }else{
+      res.send({ code: 201, msg: "密码错误" });
+    }
   });
 });
 
