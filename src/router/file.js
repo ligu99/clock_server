@@ -73,7 +73,8 @@ const random = (() => {
 // 读取表格数据写入数据库
 function readFileToDB(file, type) {
     let dir = type === "T" ? "toolupload_T" : "toolupload_D";
-    const sheets = xlsx.parse(`../../${dir}/${file}`);
+    let dirpath = path.join(__dirname, "../../", dir, file);
+    const sheets = xlsx.parse(dirpath);
     // 查看页面数
     // console.log(sheets.length);
     // 打印页面信息..
