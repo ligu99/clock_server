@@ -11,7 +11,7 @@ const query = require("../db/pool.js");
 iconv.skipDecodeWarning = true;
 
 // 处理上传文件服务
-router.post('/upload', (req, res) => {
+router.post('/file/upload', (req, res) => {
     const { type } = req.query;
     let dir = type === "T" ? "toolupload_T" : "toolupload_D";
     const busboy = Busboy({ headers: req.headers });
@@ -50,18 +50,18 @@ router.delete('/file/delete', (req, res) => {
     let dir = type === "T" ? "toolupload_T" : "toolupload_D";
     let url = path.join(__dirname, "../../", dir, filePath);
     let sql = `delete from file_list where filename='${filePath}'`;
-    if (fs.existsSync(url)) {
-        fs.unlinkSync(url);
-        query(sql, function (err, rows) {
-            if (err) {
-                res.send("err：" + err);
-            } else {
+    query(sql, function (err, rows) {
+        if (err) {
+            res.send("err：" + err);
+        } else {
+            if (fs.existsSync(url)) {
+                fs.unlinkSync(url);
                 res.send({ code: 200, msg: "ok" });
+            } else {
+                res.send({code: 201, msg: "文件不存在或已被删除" });
             }
-        });
-    } else {
-        res.send("文件不存在");
-    }
+        }
+    });
 });
 
 // 获取一个哈希值
