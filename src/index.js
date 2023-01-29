@@ -12,7 +12,11 @@ app.use(bodyParser.json())
 app.use(express.static("../web/dist"))
 //设置跨域访问
 app.all('*', function (req, res, next) {
-  const allOrigin = ["http://81.71.123.165:3000", "http://81.71.123.165:8002", "http://81.71.123.165:8010", "http://localhost:8080", "http://localhost:8084"];
+  const allOrigin = [
+    "http://token.philnote.cc", "http://movie.philnote.cc", "http://tool.philnote.cc",
+    "http://81.71.123.165:3000", "http://81.71.123.165:8002", "http://81.71.123.165:8010", 
+    "http://localhost:8080", "http://localhost:8084"
+  ];
   let allowOrigin = "http://81.71.123.165:3000";// "*" 表示所有
   if (allOrigin.includes(req.headers.origin)) {
     allowOrigin = req.headers.origin
